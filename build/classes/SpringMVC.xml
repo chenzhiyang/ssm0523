@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:dubbo="http://code.alibabatech.com/schema/dubbo"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+		http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+        http://www.springframework.org/schema/mvc
+        http://www.springframework.org/schema/mvc/spring-mvc-4.0.xsd
+        http://code.alibabatech.com/schema/dubbo
+        http://code.alibabatech.com/schema/dubbo/dubbo.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context-4.0.xsd">
+	<!-- 配置Controller注解扫描 -->
+	<context:component-scan base-package="cn.czy.controller"></context:component-scan>
+	
+	
+	
+	<!-- 每次都更新配置比较麻烦，所以用注解驱动
+	注解驱动作用：替我们自动配置最新版本的注解的处理器映射器和处理器适配器
+	 -->
+	<!-- 解决@ResponseBody注解直接返回对象并转换成JSON时出现406问题，同时解决了返回String类型乱码的问题 -->
+	<mvc:annotation-driven conversion-service="conversionService">
+	</mvc:annotation-driven>
+	
+	<!-- 配置视图解析器 -->
+	<bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="prefix" value="/WEB-INF/jsp/"></property>
+		<property name="suffix" value=".jsp"></property>
+	</bean>
+	
+	<!-- 配置自定义转换器 
+		 注意：一定要将自定义的转换器配置到注解驱动上	
+	-->
+	<bean id="conversionService"
+		class="org.springframework.format.support.FormattingConversionServiceFactoryBean">
+		<property name="converters">
+			<set>
+				<!-- 指定自定义转换器的全路径名称 -->
+				<bean class="cn.czy.controller.converter.CustomGlobalStrToDateConver"/>
+			</set>
+		</property>
+	</bean>
+	
+	<!-- 文件上传 -->
+	<bean id="multipartResolver"
+		class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+		<!-- 设置上传文件的最大尺寸为5MB -->
+		<property name="maxUploadSize">
+			<value>5242880</value>
+		</property>
+	</bean>
+	
+	<!-- 多个拦截器的执行顺序，等于springmvc.xml中的配置顺序 -->
+	<!-- 配置拦截器 -->
+	<mvc:interceptors>
+		<mvc:interceptor>
+			<!-- 拦截请求的路径，要拦截所有必须配置成/** -->
+			<mvc:mapping path="/**"/>
+			<!-- 指定拦截器位置 -->
+			<bean class="cn.czy.interceptor.LoginInterceptor"></bean>
+		</mvc:interceptor>
+	</mvc:interceptors>
+	
+</beans>
